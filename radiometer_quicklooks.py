@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import statistics
 import matplotlib.dates as mdates
 
+#%%
 ## CAPS SINGLE
 path = '/Volumes/Untitled/today20211027_caps1/'
 fname = 'CAP_L_211027_163507_URC.csv'
@@ -49,7 +50,7 @@ ax.set_ylabel('W/cm2/nm')
 
 ## NO CAPS
 
-path = '/Volumes/Untitled/today20211028/'
+path = '/Users/jakravit/OneDrive - NASA/C-HARRIER_2021_C-AIR/C-AIR/today20211028/'
 sensor = 'lt'
 flist = os.listdir(path)
 
@@ -60,13 +61,13 @@ for f in flist:
         if not f.startswith('.'):
             print(f)
             file = path+f
-            try:
-                data = pd.read_csv(file, sep=',', index_col='DateTimeUTC')
-                data.index = pd.to_datetime(data.index)
-            except:
-                continue
-            # data = pd.read_csv(file, sep=',', index_col='DateTimeUTC')
-            # data.index = pd.to_datetime(data.index)  
+            # try:
+            #     data = pd.read_csv(file, sep=',', encoding='ISO-8859-1', index_col='DateTimeUTC')
+            #     data.index = pd.to_datetime(data.index)
+            # except:
+            #     continue
+            data = pd.read_csv(file, sep=',', encoding='ISO-8859-1', index_col='DateTimeUTC')
+            data.index = pd.to_datetime(data.index)  
             
             sensors = {'es': data.iloc[:,5:24],
                         'li': data.iloc[:,24:43],
@@ -83,14 +84,22 @@ for f in flist:
 ax.legend(labels,loc='right',bbox_to_anchor=(1.15, .5),fontsize='medium')
 #ax.legend(labels,loc='upper right')
 plt.xticks(rotation=45)
+#ax.xaxis.set_major_locator(mdates.MonthLocator())
 ax.set_ylabel('uW/cm2/nm')
 ax.set_title(sensor)
-ax.set_xlim(pd.Timestamp('2021-10-27 19:29:17.340000'), pd.Timestamp('2021-10-27 21:05:17.239000'))
-#ax.set_ylim(0,5)
+#ax.set_xlim(pd.Timestamp('2021-10-27 19:29:17.340000'), pd.Timestamp('2021-10-27 21:05:17.239000'))
+ax.set_ylim(0,20)
 #ax.set_yscale('log')
 fig.savefig('/Users/jakravit/Desktop/quicklook.png',dpi=300,
             bbox_inches='tight')
 
+#%% check encoding
+
+import chardet    
+rawdata = open('/Users/jakravit/OneDrive - NASA/C-HARRIER_2021_C-AIR/C-AIR/today20211027/300205917.csv', 'rb').read()
+result = chardet.detect(rawdata)
+charenc = result['encoding']
+print(charenc)
 
 #%% 
 
