@@ -11,46 +11,68 @@ import matplotlib.pyplot as plt
 import statistics
 import matplotlib.dates as mdates
 
-#%%
-## CAPS SINGLE
-path = '/Volumes/Untitled/today20211027_caps1/'
-fname = 'CAP_L_211027_163507_URC.csv'
-file = path+fname
-sensor = 'es'
+#%
+## CAPS batch
+path = '/Users/jakravit/OneDrive - NASA/C-HARRIER_2021_C-AIR/C-AIR_CAPS/'
+outpath = '/Users/jakravit/Desktop/Caps_figs/'
 
-data = pd.read_csv(file, sep=',', error_bad_lines=False, index_col='DateTimeUTC')
-sensors = {'es': data.iloc[:,5:24],
-           'li': data.iloc[:,24:43],
-           'lt': data.iloc[:,43:]}
+suffixes = ('URU.csv','URC.csv')
+for diry in os.listdir(path):
+    print (diry)
+    
+    if not os.path.exists(outpath+diry):
+        os.mkdir(outpath+diry)
+    else:
+        pass
+    
+    for file in os.listdir(path+diry):
+        if not file.endswith(suffixes):
+            continue
+        print (file)
+        name = file[:-4]
 
-fig, ax = plt.subplots(figsize=(8,5))
-colormap = plt.cm.gist_ncar
-plt.gca().set_prop_cycle(plt.cycler('color', plt.cm.jet(np.linspace(0, 1, sensors[sensor].shape[1]))))
-means = []
-stds = []
-labels = []
-for i,b in enumerate(sensors[sensor].columns):
-    data.index = pd.to_datetime(data.index)
-    ax.scatter(data.index,data[b], marker='o',s=3)
-    mean = data[b].mean()
-    std = data[b].std()
-    means.append(mean)
-    stds.append(std)
-    labels.append('{}, \u03BC={:.1e}, \u03C3={:.1e}'.format(b.split(' ')[0], mean, std))
-#ax.axhline(statistics.mean(means),c='k')
-#labels.append('overall mean')
-ax.legend(labels,bbox_to_anchor=(1.02, 1.05),fontsize='medium')
-ax.set_title('{} -- {}'.format(sensor,fname))
-#ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-plt.xticks(rotation=45)
-ax.set_ylabel('W/cm2/nm')
+        data = pd.read_csv(os.path.join(path,diry,file), sep=',', encoding='ISO-8859-1', index_col='DateTimeUTC')
+        sensors = {'es': data.iloc[:,5:24],
+                   'li': data.iloc[:,24:43],
+                   'lt': data.iloc[:,43:]}
+        
+        for sensor,sdata in sensors.items():
+            print (sensor)
+            
+            fig, ax = plt.subplots(figsize=(8,5))
+            colormap = plt.cm.gist_ncar
+            plt.gca().set_prop_cycle(plt.cycler('color', plt.cm.jet(np.linspace(0, 1, sensors[sensor].shape[1]))))
+            means = []
+            stds = []
+            labels = []
+            for i,b in enumerate(sdata.columns):
+                sdata.index = pd.to_datetime(sdata.index)
+                ax.scatter(sdata.index,sdata[b], marker='o',s=3)
+                mean = sdata[b].mean()
+                std = sdata[b].std()
+                means.append(mean)
+                stds.append(std)
+                labels.append('{}, \u03BC={:.1e}, \u03C3={:.1e}'.format(b.split(' ')[0], mean, std))
 
+            ax.legend(labels,bbox_to_anchor=(1.09, 1.05),fontsize='medium')
+            ax.set_title('{} -- {}'.format(sensor,file))
+            plt.xticks(rotation=45)
+            ax.set_ylabel('uW/cm2/nm')
+            
+            ax2 = ax.twinx()
+            ax2.plot(data.iloc[:,3], label='Roll (deg)') # roll
+            ax2.plot(data.iloc[:,4], label='Pitch (deg)') # pitch
+            ax2.set_ylabel('Degrees')
+            ax2.legend(loc='upper left')
+            
+            fig.savefig(outpath+diry+'/'+name+'.png',bbox_inches='tight',dpi=300)
+            plt.close(fig)
 
 #%% 
 
 ## NO CAPS
 
-path = '/Users/jakravit/OneDrive - NASA/C-HARRIER_2021_C-AIR/C-AIR/today20211028/'
+path = '/Users/jakravit/OneDrive - NASA/C-HARRIER_2021_C-AIR/C-AIR/today20211027/'
 sensor = 'lt'
 flist = os.listdir(path)
 
@@ -90,8 +112,7 @@ ax.set_title(sensor)
 #ax.set_xlim(pd.Timestamp('2021-10-27 19:29:17.340000'), pd.Timestamp('2021-10-27 21:05:17.239000'))
 ax.set_ylim(0,20)
 #ax.set_yscale('log')
-fig.savefig('/Users/jakravit/Desktop/quicklook.png',dpi=300,
-            bbox_inches='tight')
+fig.savefig('/Users/jakravit/Desktop/quicklook.png',dpi=300,bbox_inches='tight')
 
 #%% check encoding
 
